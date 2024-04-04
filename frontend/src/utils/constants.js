@@ -1,0 +1,1 @@
+export const MESSAGE_SERVICE_PORT = "5000"
