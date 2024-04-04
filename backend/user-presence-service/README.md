@@ -1,1 +1,1 @@
-# notification-service
+# user-presence-service
