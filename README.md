@@ -345,17 +345,16 @@ When I deep-dived into Cassandra configurations I found that whenever Cassandra 
 ```
 from cassandra.query import SimpleStatement
 query = "SELECT * FROM my_cassandra_table;"
-```
 
 statement = SimpleStatement(query, fetch_size=100)
 results = session.execute(statement)
 
-# save page state
+save page state
 page_state = results.paging_state
 
 for data in results:
     process_data_here(data)
-
+```
 * Based on our use case, we set the fetch size (it is the size of the chunk, manually given by us to Cassandra). And when we got the result cursor, we saved the page state in a variable.
 * We put a check on the counter. If it exceeds the manual chunk size, it breaks and again fetches a fresh new chunk with the page state already saved.
 * We saved the page_state in the redis, whenever the user press the load more button we get the latest page_state from the redis and use it to move forward the page_state cursor.
