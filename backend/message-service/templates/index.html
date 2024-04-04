@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages App</title>
+</head>
+<body>
+
+<div id="messages-container">
+    <!-- Display messages here -->
+</div>
+
+<button id="load-more-btn">Load More</button>
+<script>
+    localStorage.setItem('startingTimestamp', null);
+    localStorage.setItem('pagingState', null);
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const messagesContainer = document.getElementById('messages-container');
+    const loadMoreButton = document.getElementById('load-more-btn');
+
+    let pagingState = localStorage.getItem('pagingState');
+    let startingTimestamp = localStorage.getItem('startingTimestamp');
+    const chat_id = "e7e21006-73fa-4969-9eb1-de899bf5cc74"
+
+    const fetchMessages = async () => {
+        try {
+            const response = await fetch(`http://127.0.0.1/users/chat/${chat_id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    paging_state_id: pagingState || null,
+                    starting_timestamp: startingTimestamp || null,
+                    fetch_size: 5,
+                }),
+            });
+
+            const data = await response.json();
+            console.log(data)
+            
+            pagingState = data.next_paging_state_id !== undefined ? data.next_paging_state_id : null;
+            localStorage.setItem('pagingState', pagingState);
+
+            if (data && data.user_messages && data.user_messages.length > 0) {
+                
+                startingTimestamp = data.user_messages[data.user_messages.length - 1].timestamp;
+                localStorage.setItem('startingTimestamp', startingTimestamp);
+                data.user_messages.forEach(message => {
+                    const messageElement = document.createElement('div');
+                    messageElement.textContent = `message: ${message.content} delivered at: ${message.timestamp} to: ${message.message_id} by the user: ${message.sender_id}`;
+                    messagesContainer.appendChild(messageElement);
+                });
+            
+            }
+
+            loadMoreButton.style.display = pagingState ? 'block' : 'none';
+
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+        }
+    };
+
+    // Load more button click event
+    loadMoreButton.addEventListener('click', fetchMessages);
+
+    // Initial fetch when the page loads
+    fetchMessages();
+});
+</script>
+
+</body>
+</html>
